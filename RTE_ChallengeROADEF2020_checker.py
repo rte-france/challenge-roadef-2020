@@ -316,9 +316,9 @@ def display_basic(Instance: dict, mean_risk, q95):
     print('\tScenario numbers: ', len(Instance[SCENARIO_NUMBER]))
     # Computed infos about solution
     print('Solution evaluation:')
-    print('\tmean_risk over time: ', mean_risk)
+#    print('\tmean_risk over time: ', mean_risk)
     print('\tObjective 1 (mean risk): ', np.mean(mean_risk))
-    print('\tQ95 over time: ', q95)
+#    print('\tQ95 over time: ', q95)
     tmp = np.zeros(len(q95))
     print('\tObjective 2 (expected excess): ', np.mean(np.max(np.vstack((q95 - mean_risk, tmp)), axis=0)))
 
