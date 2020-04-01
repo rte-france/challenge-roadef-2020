@@ -8,6 +8,8 @@ It was not designed to be efficient, but rather to be easily understandable.
 
 To ease its usage, the whole source code is embedded in a single file, which shall be lauched as a script.
 
+Challenge_Rules.pdf is the document describing the rules of the challenge and Challenge_Subject.pdf the document defining the problem to be solved. For more detailed and registration please refer to https://www.roadef.org/challenge/2020/en.
+
 
 ## Usage
 ---
