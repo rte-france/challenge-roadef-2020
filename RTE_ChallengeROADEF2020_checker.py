@@ -123,7 +123,7 @@ def compute_risk_distribution(Interventions: dict, T_max: int, scenario_numbers)
     print('\tComputing risk...')
     # Init risk table
     risk = [scenario_numbers[t] * [0] for t in range(T_max)]
-    # Compute for each intervention indeoendently
+    # Compute for each intervention independently
     for intervention in Interventions.values():
         # Retrieve Intervention's usefull infos
         intervention_risk = intervention[RISK_STR]
@@ -134,7 +134,8 @@ def compute_risk_distribution(Interventions: dict, T_max: int, scenario_numbers)
         start_time_idx = int(start_time) - 1 # index for list getter
         delta = int(intervention[DELTA_STR][start_time_idx])
         for time in range(start_time_idx, start_time_idx + delta):
-            risk[time] = intervention_risk[str(time + 1)][str(start_time)]
+            for i, additional_risk in enumerate(intervention_risk[str(time + 1)][str(start_time)]):
+                risk[time][i] += additional_risk
     print('\tDone')
 
     return risk
