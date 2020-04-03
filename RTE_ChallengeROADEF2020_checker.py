@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Aug  9 16:39:09 2019
-Last update on Wed Feb 12 10:35:00 2020
+Lasrt update on Wed Feb 12 10:35:00 2020
 
 @author: rte-challenge-roadef-2020-team
 """
-import operator
 import os
 import sys
 import numpy as np
@@ -32,6 +31,8 @@ MAX_STR = 'max'
 MIN_STR = 'min'
 RISK_STR = 'risk'
 START_STR = 'start'
+QUANTILE_STR = "Quantile"
+ALPHA_STR = "Alpha"
 
 ## Json reader
 def read_json(filename: str):
@@ -152,21 +153,21 @@ def compute_mean_risk(risk, T_max: int, scenario_numbers):
 
     return mean_risk
 
-## Compute Q95 quantile for each period
-def compute_q95(risk, T_max: int, scenario_numbers):
-    """Compute Q95 values over each time period"""
+## Compute quantile for each period
+def compute_quantile(risk, T_max: int, scenario_numbers, quantile):
+    """Compute Quantile values over each time period"""
 
-    print('\tComputing Q95...')
-    # Init q95
-    q95 = np.zeros(T_max)
+    print('\tComputing Quantile...')
+    # Init quantile
+    q = np.zeros(T_max)
     for t in range(T_max):
         risk[t].sort()
-        q95[t] = risk[t][int(np.floor(scenario_numbers[t] * 0.95))]
+        q[t] = risk[t][int(np.floor(scenario_numbers[t] * quantile))]
     print('\tDone')
 
-    return q95
+    return q
 
-## Compute both objectives: mean risk and q95
+## Compute both objectives: mean risk and quantile
 def compute_objective(Instance: dict):
     """Compute objectives (mean and expected excess)"""
 
@@ -175,15 +176,16 @@ def compute_objective(Instance: dict):
     T_max = Instance[T_STR]
     scenario_numbers = Instance[SCENARIO_NUMBER]
     Interventions = Instance[INTERVENTIONS_STR]
+    quantile = Instance[QUANTILE_STR]
     # Retrieve risk final distribution
     risk = compute_risk_distribution(Interventions, T_max, scenario_numbers)
     # Compute mean risk
     mean_risk = compute_mean_risk(risk, T_max, scenario_numbers)
-    # Compute Q95 quantile
-    q95 = compute_q95(risk, T_max, scenario_numbers)
+    # Compute quantile
+    q = compute_quantile(risk, T_max, scenario_numbers, quantile)
     print('Done')
 
-    return mean_risk, q95
+    return mean_risk, q
 
 
 
@@ -261,11 +263,11 @@ def check_resources(Instance: dict):
             worload = resource_usage[resource_name][time]
             # Check max
             if worload > upper_bound + tolerance:
-                print('ERROR: Resources constraint 4.2 upper bound: Worload on Resource ' + resource_name + ' at time ' + str(time) + ' exceeds upper bound.'
+                print('ERROR: Resources constraint 4.2 upper bound: Worload on Resource ' + resource_name + ' at time ' + str(time+1) + ' exceeds upper bound.'
                 + ' Value ' + str(worload) + ' is greater than bound ' + str(upper_bound) + ' plus tolerance ' + str(tolerance) + '.')
             # Check min
             if worload < lower_bound - tolerance:
-                print('ERROR: Resources constraint 4.2 lower bound: Worload on Resource ' + resource_name + ' at time ' + str(time) + ' does not match lower bound.'
+                print('ERROR: Resources constraint 4.2 lower bound: Worload on Resource ' + resource_name + ' at time ' + str(time+1) + ' does not match lower bound.'
                 + ' Value ' + str(worload) + ' is lower than bound ' + str(lower_bound) + ' minus tolerance ' + str(tolerance) + '.')
     print('\tDone')
 
@@ -307,20 +309,27 @@ def check_exclusions(Instance: dict):
 #######################
 
 ## Basic printing
-def display_basic(Instance: dict, mean_risk, q95):
+def display_basic(Instance: dict, mean_risk, quantile):
     """Print main infos"""
 
+    # Usefull infos
+    alpha = Instance[ALPHA_STR]
+    q = Instance[QUANTILE_STR]
     # Infos about instance
     print('Instance infos:')
     print('\tInterventions number: ', len(Instance[INTERVENTIONS_STR]))
     print('\tScenario numbers: ', len(Instance[SCENARIO_NUMBER]))
     # Computed infos about solution
     print('Solution evaluation:')
-#    print('\tmean_risk over time: ', mean_risk)
-    print('\tObjective 1 (mean risk): ', np.mean(mean_risk))
-#    print('\tQ95 over time: ', q95)
-    tmp = np.zeros(len(q95))
-    print('\tObjective 2 (expected excess): ', np.mean(np.max(np.vstack((q95 - mean_risk, tmp)), axis=0)))
+    print('\tmean_risk over time: ', mean_risk)
+    obj_1 = np.mean(mean_risk)
+    print('\tObjective 1 (mean risk): ', obj_1)
+    print('\tQuantile (Q' + str(q) + ') over time: ', quantile)
+    tmp = np.zeros(len(quantile))
+    obj_2 = np.mean(np.max(np.vstack((quantile - mean_risk, tmp)), axis=0))
+    print('\tObjective 2 (expected excess  (Q' + str(q) + ')): ', obj_2)
+    obj_tot = alpha * obj_1 + (1-alpha)*obj_2
+    print('\tTotal objective (alpha*mean_risk + (1-alpha)*expected_excess): ', obj_tot)
 
 
 ######################
@@ -337,9 +346,9 @@ def check_and_display(instance_file, solution_file):
     # Check all constraints
     check_all_constraints(instance)
     # Compute indicators
-    mean_risk, q95 = compute_objective(instance)
+    mean_risk, quantile = compute_objective(instance)
     # Display Solution
-    display_basic(instance, mean_risk, q95)
+    display_basic(instance, mean_risk, quantile)
 
 
 if __name__ == '__main__':
