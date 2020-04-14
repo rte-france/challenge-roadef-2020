@@ -163,7 +163,7 @@ def compute_quantile(risk, T_max: int, scenario_numbers, quantile):
     q = np.zeros(T_max)
     for t in range(T_max):
         risk[t].sort()
-        q[t] = risk[t][int(np.floor(scenario_numbers[t] * quantile))]
+        q[t] = risk[t][int(np.ceil(scenario_numbers[t] * quantile))-1]
     print('\tDone')
 
     return q
