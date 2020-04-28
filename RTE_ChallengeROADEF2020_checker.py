@@ -322,10 +322,10 @@ def display_basic(Instance: dict, mean_risk, quantile):
     print('\tScenario numbers: ', len(Instance[SCENARIO_NUMBER]))
     # Computed infos about solution
     print('Solution evaluation:')
-    print('\tmean_risk over time: ', mean_risk)
+    # print('\tmean_risk over time: ', mean_risk)
     obj_1 = np.mean(mean_risk)
     print('\tObjective 1 (mean risk): ', obj_1)
-    print('\tQuantile (Q' + str(q) + ') over time: ', quantile)
+    # print('\tQuantile (Q' + str(q) + ') over time: ', quantile)
     tmp = np.zeros(len(quantile))
     obj_2 = np.mean(np.max(np.vstack((quantile - mean_risk, tmp)), axis=0))
     print('\tObjective 2 (expected excess  (Q' + str(q) + ')): ', obj_2)
